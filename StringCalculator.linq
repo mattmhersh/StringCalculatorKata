@@ -21,6 +21,8 @@ class Calculator
 	public int AddNumber(string numbers)
 	{
 		var result = int.Parse(numbers);
+		if (result < 0)
+			throw new ArgumentException(string.Format("Negative Numbers are not allowed: {0}", result));
 		return result;		
 	}
 	
@@ -31,13 +33,27 @@ class Calculator
 			_delimiters.Add(numbers[2]);
 			numbers = numbers.Substring(4);
 		}
-		var numberSplit = numbers.Split(_delimiters.ToArray());
-		return numberSplit.Sum (s => int.Parse(s));	
+		var result = 0;
+		var containsNegativeNumber = false;
+		foreach (var numberAsString in numbers.Split(_delimiters.ToArray()))
+		{
+			var numbersAsInteger = int.Parse(numberAsString);
+			if (numbersAsInteger < 0) containsNegativeNumber = true;
+			result += numbersAsInteger;
+		}
+		//var numberSplit = numbers.Split(_delimiters.ToArray());
+		if (containsNegativeNumber)
+		{
+			throw new ArgumentException(string.Format("Negative Numbers are not allowed: {0}", string.Join(",", numbers.Split(_delimiters.ToArray()).Where (n => int.Parse(n) < 0))));
+		}
+		return result;
 	}
 	
 	public int Add(string numbers)
 	{
 		if (string.IsNullOrEmpty(numbers)) return 0;
+		
+		//if (numbers.Contains("-")) throw new ArgumentException("Negative Numbers are not allowed");
 		
 		if (_delimiters.Any (n => numbers.Contains(n)) || numbers.StartsWith("//")) return AddNumbers(numbers);	
 				
@@ -118,7 +134,7 @@ class CalculatorTests : UnitTestBase
 	public void Given_an_invalid_string_format_When_adding_Then_throw_FormatException()
 	{
 		// Act
-		_calculator.Add("1,\n");
+		var result = _calculator.Add("1,\n");
 	}
 
 	// Support different delimiters
@@ -133,12 +149,40 @@ class CalculatorTests : UnitTestBase
 		// Assert
 		Assert.AreEqual(3, result);
 	}
+	
+	// Calling Add with a negative number will throw an exception “negatives not allowed” - 
+	// and the negative that was passed.
+	[Test]
+	[ExpectException(typeof(ArgumentException), Message="Negative Numbers are not allowed: -1")]
+	public void Given_a_negative_number_When_adding_Then_throw_exception()
+	{
+		// Act
+		var result = _calculator.Add("-1");
+	}
+	
+	// if there are multiple negatives, show all of them in the exception message
+	[Test]
+	[ExpectException(typeof(ArgumentException), Message="Negative Numbers are not allowed: -1,-2")]
+	public void Given_multiple_negative_numbers_When_adding_Then_throw_exception()
+	{
+		// Act
+		var result = _calculator.Add("-1,-2");
+	}	
+	
+	[Test]
+	[ExpectException(typeof(ArgumentException), Message="Negative Numbers are not allowed: -1,-3")]
+	public void Given_multiple_negative_numbers_and_a_positive_number_When_adding_Then_throw_exception()
+	{
+		// Act
+		var result = _calculator.Add("-1,2,-3");
+	}		
 }
 
 /*
 
-Calling Add with a negative number will throw an exception “negatives not allowed” - and the negative that was passed.if there are multiple negatives, show all of them in the exception message
-stop here if you are a beginner. Continue if you can finish the steps so far in less than 30 minutes.
+
+
+Advanced:
 Numbers bigger than 1000 should be ignored, so adding 2 + 1001  = 2
 Delimiters can be of any length with the following format:  “//[delimiter]\n” for example: “//[***]\n1***2***3” should return 6
 Allow multiple delimiters like this:  “//[delim1][delim2]\n” for example “//[*][%]\n1*2%3” should return 6.
