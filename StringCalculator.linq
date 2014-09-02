@@ -22,11 +22,7 @@ class Calculator
 		if (numbers.Contains(",")) 
 		{
 			var numberSplit = numbers.Split(',');
-			foreach (var number in numberSplit)
-			{
-				result += int.Parse(number); 	
-			}
-			return result;
+			return numberSplit.Sum (s => int.Parse(s));
 		}
 		result = int.Parse(numbers);
 		return result;
@@ -349,5 +345,5 @@ abstract class UnitTestBase
 
 // Quick exercise for practicing TDD based on Roy Osherove's
 // description here: http://osherove.com/tdd-kata-1
-
+// https://www.youtube.com/watch?v=BTWXQBFK0XQ&list=PL3D3F4B7C71FF6AA0&index=4
 
