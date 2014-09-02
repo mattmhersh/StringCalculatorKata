@@ -18,17 +18,25 @@ class Calculator
 
 	private char[] _delimiters = new char[] { ',', '\n' };
 	
+	public int AddNumber(string numbers)
+	{
+		var result = int.Parse(numbers);
+		return result;		
+	}
+	
+	public int AddNumbers(string numbers)
+	{
+		var numberSplit = numbers.Split(_delimiters);
+		return numberSplit.Sum (s => int.Parse(s));	
+	}
+	
 	public int Add(string numbers)
 	{
 		if (string.IsNullOrEmpty(numbers)) return 0;
-		int result = 0;		
-		if (_delimiters.Any (n => numbers.Contains(n))) 
-		{
-			var numberSplit = numbers.Split(_delimiters);
-			return numberSplit.Sum (s => int.Parse(s));
-		}
-		result = int.Parse(numbers);
-		return result;
+		
+		if (_delimiters.Any (n => numbers.Contains(n))) return AddNumbers(numbers);	
+				
+		return AddNumber(numbers);	
 	}
 }
 
@@ -77,40 +85,45 @@ class CalculatorTests : UnitTestBase
 	// Allow the Add method to handle an unknown amount of numbers
 	[TestCase("1,2,3,4,5,6", 21)]
 	[TestCase("7,8,9,10,11", 45)]
-	public void Given_an_unknown_amount_of_numbers_When_adding_Then_return_the_sum(string number, int expected)
+	public void Given_an_unknown_amount_of_numbers_When_adding_Then_return_the_sum(string numbers, int expected)
 	{
 		// Act
-		var result = _calculator.Add(number);
+		var result = _calculator.Add(numbers);
 		
 		// Assert
 		Assert.AreEqual(expected, result);
 	}
 	
 	// Allow the Add method to handle new lines between numbers (instead of commas).
-	// the following input is ok:  “1\n2,3”  (will equal 6)
-	// the following input is NOT ok:  “1,\n” (not need to prove it - just clarifying)	
-	[Test]
-	public void Given_a_list_of_numbers_with_new_lines_When_adding_Then_return_the_sum()
+	// the following input is ok:  “1\n2,3”  (will equal 6)	
+	[TestCase("1\n2", 3)]
+	[TestCase("1\n2,3", 6)]
+	public void Given_a_list_of_numbers_with_new_lines_When_adding_Then_return_the_sum(string numbers, int expected)
 	{
 		// Act
-		var result = _calculator.Add("1\n2");
+		var result = _calculator.Add(numbers);
 		
 		// Assert
-		Assert.AreEqual(3, result);
+		Assert.AreEqual(expected, result);
 	}
+	
+	// the following input is NOT ok:  “1,\n” (not need to prove it - just clarifying)	
+	[Test]
+	[ExpectException(typeof(FormatException))]
+	public void Given_an_invalid_string_format_When_adding_Then_throw_FormatException()
+	{
+		// Act
+		_calculator.Add("1,\n");
+	}
+
+	// Support different delimiters
+	// to change a delimiter, the beginning of the string will contain a separate line that looks like this:   “//[delimiter]\n[numbers…]” for example “//;\n1;2” should return three where the default delimiter is ‘;’ .
+	// the first line is optional. all existing scenarios should still be supported
 	
 }
 
 /*
 
-String Calculator
-
-
-
-
-Support different delimiters
-to change a delimiter, the beginning of the string will contain a separate line that looks like this:   “//[delimiter]\n[numbers…]” for example “//;\n1;2” should return three where the default delimiter is ‘;’ .
-the first line is optional. all existing scenarios should still be supported
 Calling Add with a negative number will throw an exception “negatives not allowed” - and the negative that was passed.if there are multiple negatives, show all of them in the exception message
 stop here if you are a beginner. Continue if you can finish the steps so far in less than 30 minutes.
 Numbers bigger than 1000 should be ignored, so adding 2 + 1001  = 2
@@ -204,7 +217,14 @@ class ExpectExceptionAttribute : Attribute
 	
 	public bool Equals(Exception exception) 
 	{
-		return (ExceptionType == exception.GetType()) && Message.Equals(exception.Message);
+		if (string.IsNullOrEmpty(exception.Message))
+		{
+			return (ExceptionType == exception.GetType()) && Message.Equals(exception.Message);
+		}
+		else
+		{
+			return (ExceptionType == exception.GetType());
+		}
 	}
 }
 
