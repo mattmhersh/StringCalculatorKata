@@ -15,13 +15,16 @@ void Main()
 // Remember to refactor after each passing test
 class Calculator
 {
+
+	private char[] _delimiters = new char[] { ',', '\n' };
+	
 	public int Add(string numbers)
 	{
 		if (string.IsNullOrEmpty(numbers)) return 0;
 		int result = 0;		
-		if (numbers.Contains(",") || numbers.Contains("\n")) 
+		if (_delimiters.Any (n => numbers.Contains(n))) 
 		{
-			var numberSplit = numbers.Split(',', '\n');
+			var numberSplit = numbers.Split(_delimiters);
 			return numberSplit.Sum (s => int.Parse(s));
 		}
 		result = int.Parse(numbers);
