@@ -16,7 +16,7 @@ void Main()
 class Calculator
 {
 
-	private char[] _delimiters = new char[] { ',', '\n' };
+	private List<char> _delimiters = new List<char> { ',', '\n' };
 	
 	public int AddNumber(string numbers)
 	{
@@ -26,7 +26,12 @@ class Calculator
 	
 	public int AddNumbers(string numbers)
 	{
-		var numberSplit = numbers.Split(_delimiters);
+		if (numbers.StartsWith("//"))
+		{
+			_delimiters.Add(numbers[2]);
+			numbers = numbers.Substring(4);
+		}
+		var numberSplit = numbers.Split(_delimiters.ToArray());
 		return numberSplit.Sum (s => int.Parse(s));	
 	}
 	
@@ -34,7 +39,7 @@ class Calculator
 	{
 		if (string.IsNullOrEmpty(numbers)) return 0;
 		
-		if (_delimiters.Any (n => numbers.Contains(n))) return AddNumbers(numbers);	
+		if (_delimiters.Any (n => numbers.Contains(n)) || numbers.StartsWith("//")) return AddNumbers(numbers);	
 				
 		return AddNumber(numbers);	
 	}
@@ -119,7 +124,15 @@ class CalculatorTests : UnitTestBase
 	// Support different delimiters
 	// to change a delimiter, the beginning of the string will contain a separate line that looks like this:   “//[delimiter]\n[numbers…]” for example “//;\n1;2” should return three where the default delimiter is ‘;’ .
 	// the first line is optional. all existing scenarios should still be supported
-	
+	[Test]
+	public void Given_a_custom_delimiter_When_adding_Then_return_the_sum()
+	{
+		// Act
+		var result = _calculator.Add("//;\n1;2");
+		
+		// Assert
+		Assert.AreEqual(3, result);
+	}
 }
 
 /*
