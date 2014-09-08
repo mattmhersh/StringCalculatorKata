@@ -10,8 +10,16 @@ void Main()
 
 class Calculator
 {
-	public int Add (string number) {
-		return 0;
+	public int Add (string numbers) {
+		if (string.IsNullOrEmpty(numbers)) return 0;
+		
+		int total = 0;
+		var numberArray = numbers.Split(',');
+		foreach (var number in numberArray)
+		{
+			total += int.Parse(number);
+		}
+		return total;
 	}
 }
 
