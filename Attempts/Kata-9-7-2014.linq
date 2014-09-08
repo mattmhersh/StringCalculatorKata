@@ -10,15 +10,19 @@ void Main()
 
 class Calculator
 {
+	private List<char> _delimiters = new List<char> { ',', '\n' };
+
 	public int Add (string numbers) {
 		if (string.IsNullOrEmpty(numbers)) return 0;
 		
-		int total = 0;
-		var numberArray = numbers.Split(',');
-		foreach (var number in numberArray)
+		int total = 0;		
+		
+		foreach (var numberAsString in numbers.Split(_delimiters.ToArray()))
 		{
-			total += int.Parse(number);
-		}
+			var numbersAsInteger = int.Parse(numberAsString);
+			total += numbersAsInteger;
+		}		
+		
 		return total;
 	}
 }
@@ -54,13 +58,35 @@ class CalculatorTests : UnitTestBase
 		// Assert
 		Assert.AreEqual(3, result);
 	}
+	
+
+	// Allow the Add method to handle an unknown amount of numbers
+	[Test]
+	public void Given_a_unknown_amount_of_numbers_When_adding_then_return_sum()
+	{
+		// Act
+		var result = _calculator.Add("1,2,3");
+		
+		// Assert
+		Assert.AreEqual(6, result);
+	}
+	
+	// Allow the Add method to handle new lines between numbers (instead of commas).
+	// the following input is ok:  “1\n2,3”  (will equal 6)
+	// the following input is NOT ok:  “1,\n” (not need to prove it - just clarifying)
+	[Test]
+	public void Given_a_list_of_numbers_with_a_new_line_When_adding_then_return_sum()
+	{
+		// Act
+		var result = _calculator.Add("1\n2,3");
+		
+		// Assert
+		Assert.AreEqual(6, result);
+	}
 }
 
 /*	
-	Allow the Add method to handle an unknown amount of numbers
-	Allow the Add method to handle new lines between numbers (instead of commas).
-	the following input is ok:  “1\n2,3”  (will equal 6)
-	the following input is NOT ok:  “1,\n” (not need to prove it - just clarifying)
+	
 	Support different delimiters
 	to change a delimiter, the beginning of the string will contain a separate line that looks like this:   “//[delimiter]\n[numbers…]” for example “//;\n1;2” should return three where the default delimiter is ‘;’ .
 	the first line is optional. all existing scenarios should still be supported
